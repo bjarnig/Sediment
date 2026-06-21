@@ -1,0 +1,40 @@
+class:: Silt
+summary:: stochastic buffer grain cloud
+related:: Classes/Sediment, Classes/GrainBuf
+categories:: UGens>Buffer>Granular
+
+description::
+
+A granular cloud that reads a buffer. Each grain's position, pitch and pan are drawn
+from a selectable probability distribution (code::dist::), scaled by code::scatter:: —
+so the shape of the randomness is the instrument. Stereo (two-channel) output.
+
+classmethods::
+
+method:: ar
+argument:: bufnum
+Buffer to granulate (mono read; channel 0 of a stereo buffer).
+argument:: density
+Grains per second. Default 20.
+argument:: dur
+Grain duration in seconds. Default 0.1.
+argument:: position
+Base read position in the buffer, 0–1. Default 0.5.
+argument:: scatter
+Spread of position, pitch and pan around their base, 0–1. Default 0.3.
+argument:: dist
+Distribution: 0 linear, 1 cauchy, 2 logistic, 3 hyperbcos, 4 arcsine, 5 exponential, 6 sinus. Default 0.
+argument:: distParam
+Distribution shape, 0–1. Default 0.5.
+argument:: pitch
+Base transposition in semitones. Default 0.
+argument:: mul
+argument:: add
+
+examples::
+code::
+b = Buffer.read(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav");
+// cauchy distribution scatters a few grains far from the rest
+{ Silt.ar(b, density: 30, dur: 0.12, position: MouseX.kr(0,1),
+    scatter: MouseY.kr(0,1), dist: 1, distParam: 0.5) }.play;
+::

@@ -1,8 +1,22 @@
 # Sediment
 
-A granular texture-processor UGen for SuperCollider — an original DSP design
-inspired by the Mutable Instruments **Clouds** eurorack module, but with its own
-parameter vocabulary and its own sense of space.
+Experimental granular UGens for SuperCollider. Work-in-progress.
+
+## UGens
+
+- **Sediment** : granular / time-stretch / looping-delay processor with macro
+  controls (scatter / bloom / drift) and a feedback-delay-network space. Inspired
+  by Mutable Instruments Clouds; original DSP.
+- **Silt** : stochastic buffer grain cloud — grain position/pitch/pan drawn from a
+  selectable probability distribution.
+- **Talus** : granular feedback delay — overlapping grains read a delay line that is
+  fed by their own (saturated) output, so echoes accrete.
+- **Scree** : stutter / glitch shuffler — records the input and replays slices in
+  randomized order with a repeat count.
+- **Loess** : micro-dust — a dense cloud of sub-10ms grains finely detuned into a
+  continuous smear.
+
+## Sediment
 
 Stereo in → stereo out. Audio is continuously recorded into an internal 2-second
 buffer and reprocessed in one of three modes, then sent through a feedback-delay-network

@@ -1,0 +1,39 @@
+class:: Talus
+summary:: granular feedback delay
+related:: Classes/Sediment, Classes/PitchShift
+categories:: UGens>Granular
+
+description::
+
+A delay line read by overlapping grains. Each grain's output is fed back into the line
+(saturated, so it stays bounded), so echoes accrete and pile up — granular rockfall.
+Mono input, stereo output. code::maxDelay:: is fixed at build time.
+
+classmethods::
+
+method:: ar
+argument:: in
+Audio input.
+argument:: maxDelay
+Maximum delay in seconds (fixed/scalar — sets the buffer size). Default 2.
+argument:: delay
+Delay time in seconds. Default 0.25.
+argument:: density
+Grains per second. Default 20.
+argument:: dur
+Grain duration in seconds. Default 0.2.
+argument:: pitch
+Grain transposition in semitones (feedback transposes cumulatively). Default 0.
+argument:: feedback
+Feedback amount, 0–1. Default 0.3.
+argument:: spread
+Delay-time jitter and stereo spread, 0–1. Default 0.5.
+argument:: mul
+argument:: add
+
+examples::
+code::
+// pitched feedback shards from an impulse train
+{ Talus.ar(Dust.ar(2) * 0.5, delay: 0.2, density: 25, dur: 0.2,
+    pitch: 5, feedback: MouseX.kr(0,0.8), spread: 0.6) }.play;
+::

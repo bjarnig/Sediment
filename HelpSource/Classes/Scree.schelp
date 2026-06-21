@@ -1,0 +1,39 @@
+class:: Scree
+summary:: stutter / glitch shuffler
+related:: Classes/Sediment, Classes/BufRd
+categories:: UGens>Granular
+
+description::
+
+Records the input into a buffer and replays it as slices, either continuing through the
+recording or jumping to a random earlier point, repeating each slice a few times. A
+rhythmic stutter / buffer-mangler. Mono input, stereo output. code::maxLen:: is fixed
+at build time.
+
+classmethods::
+
+method:: ar
+argument:: in
+Audio input.
+argument:: maxLen
+Record-buffer length in seconds (fixed/scalar). Default 2.
+argument:: sliceDur
+Slice length in seconds. Default 0.1.
+argument:: jump
+Probability (0–1) of jumping to a random slice rather than continuing. Default 0.3.
+argument:: repeats
+How many times each slice repeats before moving on (1–32). Default 2.
+argument:: pitch
+Slice transposition in semitones. Default 0.
+argument:: scatter
+Per-slice stereo placement spread, 0–1. Default 0.3.
+argument:: mul
+argument:: add
+
+examples::
+code::
+// stutter a loop; mouse X = slice length, Y = jump probability
+b = Buffer.read(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav");
+{ Scree.ar(PlayBuf.ar(1, b, BufRateScale.kr(b), loop: 1),
+    sliceDur: MouseX.kr(0.02,0.3), jump: MouseY.kr(0,1), repeats: 3) }.play;
+::

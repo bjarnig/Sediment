@@ -1,0 +1,35 @@
+class:: Loess
+summary:: micro-dust granular smear
+related:: Classes/Sediment, Classes/PitchShift
+categories:: UGens>Granular
+
+description::
+
+A very dense cloud of very short grains read from a short delay line of the input, finely
+detuned and scattered in time, forming a continuous dust / smear. Good for blurring a
+source into texture or a shimmering drone. Mono input, stereo output.
+
+classmethods::
+
+method:: ar
+argument:: in
+Audio input.
+argument:: density
+Grains per second (dense — hundreds). Default 300.
+argument:: grainDur
+Grain duration in seconds (sub-10ms works best). Default 0.006.
+argument:: timeSpread
+How far back in the short buffer grains are scattered, 0–1. Default 0.5.
+argument:: pitch
+Base transposition in semitones. Default 0.
+argument:: pitchSpread
+Random per-grain detune in semitones (± this). Default 0.5.
+argument:: mul
+argument:: add
+
+examples::
+code::
+// blur the mic into a shimmering smear
+{ Loess.ar(SoundIn.ar(0), density: 400, grainDur: 0.008,
+    timeSpread: MouseX.kr(0,1), pitchSpread: MouseY.kr(0,7)) }.play;
+::
