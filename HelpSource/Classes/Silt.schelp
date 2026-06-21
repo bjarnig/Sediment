@@ -28,6 +28,8 @@ argument:: distParam
 Distribution shape, 0–1. Default 0.5.
 argument:: pitch
 Base transposition in semitones. Default 0.
+argument:: shape
+Grain window shape: 0 percussive, 0.5 symmetric, 1 reversed. Default 0.5.
 argument:: mul
 argument:: add
 

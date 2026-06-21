@@ -6,7 +6,7 @@ static InterfaceTable* ft;
 
 static const int kMaxGrains = 64;
 
-enum { Bufnum, Density, Dur, Position, Scatter, Dist, DistParam, Pitch, kNumArgs };
+enum { Bufnum, Density, Dur, Position, Scatter, Dist, DistParam, Pitch, Shape, kNumArgs };
 
 struct SiltGrain { bool active; double readPos, readInc, start, phase, phaseInc; float ampL, ampR; };
 
@@ -46,6 +46,7 @@ static void Silt_next(Silt* unit, int nSamples) {
     const int   dist    = (int)gr::gr_clampf(ZIN0(Dist), 0.f, 6.f);
     const float distP   = gr::gr_clampf(ZIN0(DistParam), 0.f, 1.f);
     const float pitch   = ZIN0(Pitch);
+    const float shape   = gr::gr_clampf(ZIN0(Shape), 0.f, 1.f);
     const double triggerInc = (double)density / unit->sr;
     const float wetGain = (float)(0.7 / std::sqrt(density * dur > 1.0 ? density * dur : 1.0));
 
@@ -69,8 +70,8 @@ static void Silt_next(Silt* unit, int nSamples) {
         for (int i = 0; i < kMaxGrains; ++i) {
             SiltGrain* gr = &unit->g[i];
             if (!gr->active) continue;
-            float v = gr::gr_cubic(bufData, bufFrames, bufCh, 0, gr->start + gr->readPos * gr->readInc);
-            float w = gr::gr_window((float)gr->phase, 1.0f);
+            float v = gr::gr_sinc(bufData, bufFrames, bufCh, 0, gr->start + gr->readPos * gr->readInc, gr->readInc);
+            float w = gr::gr_env((float)gr->phase, shape);
             wL += v * gr->ampL * w; wR += v * gr->ampR * w;
             gr->readPos += 1.0; gr->phase += gr->phaseInc;
             if (gr->phase >= 1.0) gr->active = false;
@@ -88,4 +89,4 @@ static void Silt_Ctor(Silt* unit) {
     ClearUnitOutputs(unit, 1);
 }
 
-PluginLoad(Silt) { ft = inTable; DefineSimpleUnit(Silt); }
+PluginLoad(Silt) { ft = inTable; gr::gr_init_sinc(); DefineSimpleUnit(Silt); }

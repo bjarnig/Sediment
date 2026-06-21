@@ -3,6 +3,7 @@
 #include "SC_PlugIn.h"
 static InterfaceTable* ft;   // must precede sediment_dsp.hpp: its RTAlloc/RTFree expand to *ft
 #include "sediment_dsp.hpp"
+#include "grains.hpp"        // shared helpers (band-limited sinc read)
 #include <cmath>
 
 // Input order MUST match classes/Sediment.sc multiNew order. Sediment exposes
@@ -121,8 +122,8 @@ static void Sediment_next(Sediment* unit, int nSamples) {
                 sediment::Grain* gr = &e.grains[g];
                 if (!gr->active) continue;
                 double rp = gr->start + gr->readPos * gr->readInc;
-                float sL = sediment::cl_read(buf, bufFrames, rp, 0);
-                float sR = sediment::cl_read(buf, bufFrames, rp, 1);
+                float sL = gr::gr_sinc(buf, bufFrames, 2, 0, rp, gr->readInc);
+                float sR = gr::gr_sinc(buf, bufFrames, 2, 1, rp, gr->readInc);
                 float mono = 0.5f * (sL + sR);
                 float win = sediment::cl_window((float)gr->phase, gr->winK);
                 wetL += mono * gr->ampL * win;
@@ -179,5 +180,6 @@ static void Sediment_Dtor(Sediment* unit) {
 
 PluginLoad(Sediment) {
     ft = inTable;
+    gr::gr_init_sinc();
     DefineDtorUnit(Sediment);
 }

@@ -1,0 +1,42 @@
+class:: Clast
+summary:: wavecycle grain cloud (pitch-synchronous granulation)
+related:: Classes/Sediment, Classes/Silt, Classes/GrainBuf
+categories:: UGens>Buffer>Granular
+
+description::
+
+A granular cloud whose grains are measured in WAVECYCLES rather than milliseconds.
+Each grain spans code::cycles:: wavecycles (zero-crossing spans) of the source buffer,
+so grain length follows the source's own period — short where the source is high, long
+where it is low. Grains are overlapped, windowed and given a per-grain pitch and pan.
+Stereo output, band-limited (sinc) interpolation.
+
+classmethods::
+
+method:: ar
+argument:: bufnum
+Source buffer (mono; channel 0 of a stereo buffer).
+argument:: cycles
+Wavecycles per grain (1–64). Default 4.
+argument:: density
+Grains per second. Default 40.
+argument:: position
+Base read position in the buffer, 0–1 (snapped to a zero crossing). Default 0.5.
+argument:: scan
+Rate the read position advances through the buffer (-1..1; 0 = stay). Default 0.
+argument:: pitch
+Per-grain transposition in semitones. Default 0.
+argument:: spread
+Position jitter and stereo spread, 0–1. Default 0.4.
+argument:: shape
+Window shape: 0 percussive, 0.5 symmetric, 1 reversed. Default 0.5.
+argument:: mul
+argument:: add
+
+examples::
+code::
+b = Buffer.read(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav");
+// scan slowly through the buffer; mouse X = cycles per grain, Y = pitch
+{ Clast.ar(b, cycles: MouseX.kr(1,24).round, density: 60, position: 0.3,
+    scan: 0.05, pitch: MouseY.kr(-12,12), spread: 0.5) }.play;
+::

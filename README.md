@@ -15,6 +15,11 @@ Experimental granular UGens for SuperCollider. Work-in-progress.
   randomized order with a repeat count.
 - **Loess** : micro-dust — a dense cloud of sub-10ms grains finely detuned into a
   continuous smear.
+- **Clast** : wavecycle grain cloud — grains span N wavecycles (zero-crossing spans)
+  of the buffer, so grain length follows the source's period (pitch-synchronous).
+- **Creep** : drunken-walk granular read-head over the live input (after CDP's DRUNK).
+- **Moraine** : detects grains in the input by amplitude troughs, then omits / duplicates
+  / reorders / timewarps them (after CDP's GRAIN suite).
 
 ## Sediment
 

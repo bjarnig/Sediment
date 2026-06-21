@@ -1,0 +1,49 @@
+class:: Moraine
+summary:: detect grains in the input, then transform them
+related:: Classes/Sediment, Classes/Scree
+categories:: UGens>Granular
+
+description::
+
+Detects grains in the live input by amplitude troughs (a gate plus a minimum silence
+gap), then transports and re-deposits them — after CDP's GRAIN suite. Mono input, stereo
+output. code::maxLen:: is fixed at build time.
+
+note:: Like CDP's GRAIN, this needs material with gaps — percussion, plucks, speech with
+pauses, gated tones. On continuous, always-loud material no grain boundaries are found and
+the output is silent; lower code::gate:: and/or code::minHole:: to pick out more grains.::
+
+list::
+## code::mode 0:: omit — keep some detected grains, drop the rest (decimate).
+## code::mode 1:: duplicate — repeat each grain a number of times (stutter).
+## code::mode 2:: reorder — shuffle grains within a sliding window.
+## code::mode 3:: timewarp — open silent gaps between grains (spread them in time).
+::
+
+classmethods::
+
+method:: ar
+argument:: in
+Audio input.
+argument:: maxLen
+Record-buffer length in seconds (fixed/scalar). Default 4.
+argument:: mode
+0 omit, 1 duplicate, 2 reorder, 3 timewarp. Default 0.
+argument:: gate
+Amplitude threshold for grain detection, 0–1. Default 0.05.
+argument:: minHole
+Minimum silence (seconds) that separates two grains. Default 0.02.
+argument:: amount
+Strength of the transform, 0–1 (how many dropped / how many repeats / window size / gap length). Default 0.5.
+argument:: pitch
+Transposition of emitted grains in semitones. Default 0.
+argument:: mul
+argument:: add
+
+examples::
+code::
+b = Buffer.read(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav");
+// reorder detected grains; mouse X = window size, Y = gate sensitivity
+{ Moraine.ar(PlayBuf.ar(1, b, BufRateScale.kr(b), loop: 1),
+    mode: 2, gate: MouseY.kr(0.01,0.2), minHole: 0.02, amount: MouseX.kr(0,1)) }.play;
+::

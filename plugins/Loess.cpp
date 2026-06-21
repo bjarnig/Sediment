@@ -67,7 +67,7 @@ static void Loess_next(Loess* unit, int nSamples) {
         for (int i = 0; i < kMaxGrains; ++i) {
             LoessGrain* gr = &unit->g[i];
             if (!gr->active) continue;
-            float v = gr::gr_cubic(line, F, 1, 0, gr->start + gr->readPos * gr->readInc);
+            float v = gr::gr_sinc(line, F, 1, 0, gr->start + gr->readPos * gr->readInc, gr->readInc);
             float w = gr::gr_window((float)gr->phase, 1.0f);
             wL += v * gr->ampL * w; wR += v * gr->ampR * w;
             gr->readPos += 1.0; gr->phase += gr->phaseInc;
@@ -93,4 +93,4 @@ static void Loess_Ctor(Loess* unit) {
 
 static void Loess_Dtor(Loess* unit) { if (unit->line) RTFree(unit->mWorld, unit->line); }
 
-PluginLoad(Loess) { ft = inTable; DefineDtorUnit(Loess); }
+PluginLoad(Loess) { ft = inTable; gr::gr_init_sinc(); DefineDtorUnit(Loess); }
