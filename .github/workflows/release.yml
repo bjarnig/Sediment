@@ -1,0 +1,84 @@
+# .github/workflows/release.yml
+# Tag vX.Y.Z -> build macOS/Linux/Windows and attach per-OS zips to the release.
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build ${{ matrix.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-latest,   label: macOS }
+          - { os: ubuntu-latest,  label: Linux }
+          - { os: windows-latest, label: Windows }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Use an ABI-matching SC release tag (v3 = 3.12-3.14.x).
+      - name: Fetch SuperCollider source
+        run: git clone --depth 1 --branch Version-3.14.1 https://github.com/supercollider/supercollider.git sc-src
+
+      # Relative paths only — absolute github.workspace paths break on Windows.
+      - name: Configure
+        run: cmake -S . -B build -DSC_PATH=sc-src -DCMAKE_BUILD_TYPE=Release -DSUPERNOVA=OFF
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Install
+        run: cmake --install build --config Release --prefix install
+
+      - name: Package
+        working-directory: install
+        run: cmake -E tar cf ../Sediment-${{ matrix.label }}.zip --format=zip Sediment
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sediment-${{ matrix.label }}
+          path: Sediment-${{ matrix.label }}.zip
+
+  release:
+    name: Publish release
+    needs: build           # all platforms must succeed, or no release is published
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**/*.zip
+          fail_on_unmatched_files: true
+          body: |
+            **Sediment** — a granular texture-processor UGen for SuperCollider.
+
+            An original DSP design inspired by Mutable Instruments "Clouds": a granular /
+            time-stretch / looping-delay processor with macro controls (scatter / bloom /
+            drift) and a feedback-delay-network space.
+            Modes in this build: `0` granular, `1` stretch (WSOLA), `2` looping delay.
+
+            ### Compatibility
+            Built against SuperCollider **3.14.1** (plugin API **v3**) — loads in SuperCollider **3.12–3.14.x**. *Not* compatible with 3.15/develop builds (API v6). Each archive is platform-specific.
+
+            ### Install
+            Extract the archive for your OS into your SuperCollider **Extensions** folder, then recompile the class library (Cmd/Ctrl-Shift-L) and reboot the server.
+            - macOS: `~/Library/Application Support/SuperCollider/Extensions/`
+            - Linux: `~/.local/share/SuperCollider/Extensions/`
+            - Windows: `%LOCALAPPDATA%\SuperCollider\Extensions\`
+
+            **macOS:** the plugins are unsigned, so clear the download quarantine after extracting:
+            ```
+            xattr -dr com.apple.quarantine ~/Library/Application\ Support/SuperCollider/Extensions/Sediment
+            ```

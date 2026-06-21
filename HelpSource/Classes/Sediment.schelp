@@ -1,0 +1,139 @@
+class:: Sediment
+summary:: granular texture processor — macro controls + FDN space (Clouds-inspired)
+related:: Classes/GrainBuf, Classes/Warp1, Classes/PitchShift
+categories:: UGens>Buffer>Granular
+
+description::
+
+A stereo granular texture processor: an original DSP design inspired by the Mutable
+Instruments "Clouds" eurorack module, with its own parameter vocabulary and its own
+sense of space. Audio fed in is continuously recorded into an internal 2-second buffer
+and reprocessed, then sent through a feedback-delay-network "space" (a modulated, lightly
+saturated smear rather than a plate reverb).
+
+Three playback modes (code::mode::):
+list::
+## code::0:: granular — a cloud of overlapping windowed grains drawn from the buffer.
+## code::1:: stretch — WSOLA time-stretch with correlation-matched splicing.
+## code::2:: looping delay — looped buffer playback transposed by a pitch shifter.
+::
+
+Rather than a knob-for-knob layout, Sediment has three macros, each moving several
+internals at once:
+list::
+## code::scatter:: — cloud busyness, width and randomness (grain rate + jitter + spread).
+## code::bloom:: — grain size together with the amount of space (small/dry → long/blooming).
+## code::drift:: — slow autonomous wander of position and pitch.
+::
+
+The engine runs at the server's sample rate; grain and loop timing are sample-rate-correct.
+code::freeze:: stops recording so the buffer content loops (granulate or stretch a held
+texture). code::feedback:: recirculates the wet output back into the recording for evolving,
+self-feeding clouds. All inputs are control rate except the audio inputs.
+
+classmethods::
+
+method:: ar
+
+argument:: inL
+Left audio input.
+argument:: inR
+Right audio input (defaults to code::inL:: if omitted, i.e. mono in).
+argument:: pitch
+Base transposition in semitones, -48 to 48. Default 0.
+argument:: position
+Where in the recording buffer to read / scrub, 0–1. Default 0.5.
+argument:: scatter
+Cloud busyness, width and randomness in one control: grain rate, position jitter, window
+variation and stereo spread all rise with it, 0–1. Default 0.5.
+argument:: bloom
+Grain size and the amount of space together, 0–1: small grains and a dry tone at 0, long
+grains and a blooming halo at 1. Default 0.3.
+argument:: drift
+Slow autonomous wander applied to position and pitch, 0–1. Default 0.3.
+argument:: feedback
+Recirculate the wet output back into the recording, 0–1 (saturated, so it stays bounded).
+Default 0.
+argument:: dryWet
+Dry/wet mix, 0 dry – 1 wet (equal power). Default 0.5.
+argument:: freeze
+When code::> 0::, stop recording so the buffer content loops. Default 0.
+argument:: mode
+Playback mode: 0 granular, 1 stretch, 2 looping delay. Default 0.
+argument:: trigger
+Reserved for a manual grain trigger (audio or control rate). Default 0.
+argument:: mul
+argument:: add
+
+returns:: a stereo (two-channel) UGen.
+
+examples::
+
+code::
+// load a source sound used by the examples below
+b = Buffer.read(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav");
+
+
+// 1. granular — X = position, Y = scatter (sparse/narrow .. dense/wide)
+(
+x = { var in = PlayBuf.ar(1, b, BufRateScale.kr(b), loop: 1);
+    Sediment.ar(in, in, position: MouseX.kr(0,1), scatter: MouseY.kr(0.1,0.9),
+        bloom: 0.4, drift: 0.3, dryWet: 1, mode: 0) }.play;
+)
+x.free;
+
+
+// 2. bloom sweep — grains grow and the space blooms together (X = bloom)
+(
+x = { var in = PlayBuf.ar(1, b, BufRateScale.kr(b), loop: 1);
+    Sediment.ar(in, in, scatter: 0.5, bloom: MouseX.kr(0,1), drift: 0.4,
+        dryWet: 1, mode: 0) }.play;
+)
+x.free;
+
+
+// 3. frozen cloud — capture ~1s, then freeze and scrub it (X = position, Y = drift)
+(
+x = { var in = PlayBuf.ar(1, b, BufRateScale.kr(b), loop: 1);
+    var fz = ToggleFF.kr(Impulse.kr(0)) + (Line.kr(0,1,1) >= 1);  // freeze after 1s
+    Sediment.ar(in, in, position: MouseX.kr(0,1), scatter: 0.5, bloom: 0.6,
+        drift: MouseY.kr(0,1), dryWet: 1, freeze: 1, mode: 0) }.play;
+)
+x.free;
+
+
+// 4. stretch (WSOLA) — X = stretch speed (slow .. fast), Y = grain size
+(
+x = { var in = PlayBuf.ar(1, b, BufRateScale.kr(b), loop: 1);
+    Sediment.ar(in, in, position: 0.5, scatter: MouseX.kr(0.15,0.85),
+        bloom: MouseY.kr(0.2,0.85), drift: 0, dryWet: 1, mode: 1) }.play;
+)
+x.free;
+
+
+// 5. looping delay — frozen octave-down shimmer with feedback
+(
+x = { var in = PlayBuf.ar(1, b, BufRateScale.kr(b), loop: 1);
+    Sediment.ar(in, in, pitch: -12, position: 0.2, bloom: 0.4, drift: 0.2,
+        dryWet: 1, feedback: 0.4, freeze: 1, mode: 2) }.play;
+)
+x.free;
+
+
+// 6. live input — granulate the microphone, self-feeding cloud
+(
+x = { var in = SoundIn.ar(0);
+    Sediment.ar(in, in, scatter: 0.6, bloom: 0.5, drift: 0.5,
+        feedback: 0.5, dryWet: 0.8, mode: 0) }.play;
+)
+x.free;
+
+
+// 7. drone from a sine — pitch the grain cloud with the mouse
+(
+x = { var in = SinOsc.ar([110,110.3]).sum * 0.2;
+    Sediment.ar(in, in, pitch: MouseY.kr(-12,12), position: 0.5,
+        scatter: 0.4, bloom: 0.7, drift: 0.6, dryWet: 1, mode: 0) }.play;
+)
+x.free;
+::
