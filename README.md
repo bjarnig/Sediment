@@ -10,7 +10,7 @@ Experimental granular UGens for SuperCollider.
 - **Silt**: stochastic buffer grain cloud.
 - **Talus**: granular feedback delay.
 - **Scree**: stutter / glitch slice shuffler.
-- **Loess**: micro-dust smear.
+- **Loess**: micro-dust cloud.
 - **Clast**: wavecycle grain cloud (pitch-synchronous).
 - **Creep**: drunken-walk read-head.
 - **Moraine**: detect grains, then omit / duplicate / reorder / timewarp.
